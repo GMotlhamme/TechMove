@@ -17,6 +17,7 @@ namespace TechMove.Models.Domain
         [Column(TypeName = "decimal(18,3)")]
         public decimal Cost { get; set; }
 
+        [Required]
         public string Status { get; set; }
 
         public int ContractId { get; set; }

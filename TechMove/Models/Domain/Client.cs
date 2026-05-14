@@ -4,14 +4,14 @@ namespace TechMove.Models.Domain
 {
     public class Client
     {
-        [Required]
+        [Key]
         public int Id { get; set; }
 
         [Required]
         public string Name { get; set; }
 
-        [Required]
-        public string ContractDetails { get; set; }
+      
+        public string? ContractDetails { get; set; }
 
         [Required]
         public string Region { get; set; }

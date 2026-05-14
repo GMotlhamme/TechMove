@@ -12,7 +12,7 @@ using TechMove.Data;
 namespace TechMove.Migrations
 {
     [DbContext(typeof(TechMoveDbContext))]
-    [Migration("20260511092730_InitialMigration")]
+    [Migration("20260513104504_InitialMigration")]
     partial class InitialMigration
     {
         /// <inheritdoc />
@@ -34,7 +34,6 @@ namespace TechMove.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("ContractDetails")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
@@ -74,8 +73,9 @@ namespace TechMove.Migrations
                     b.Property<DateOnly>("StartDate")
                         .HasColumnType("date");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 

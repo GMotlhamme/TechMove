@@ -1,13 +1,22 @@
 using Microsoft.EntityFrameworkCore;
 using TechMove.Data;
+using TechMove.Interfaces;
+using TechMove.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
+//database configuration
 builder.Services.AddDbContext<TechMoveDbContext>(options =>
 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+//file upload
+builder.Services.AddScoped<FileUploadValidationService>();
+
+//service request validations
+builder.Services.AddScoped<IServiceRequestService, ServiceRequestService>();
 
 var app = builder.Build();
 
