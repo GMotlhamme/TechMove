@@ -18,6 +18,9 @@ builder.Services.AddScoped<FileUploadValidationService>();
 //service request validations
 builder.Services.AddScoped<IServiceRequestService, ServiceRequestService>();
 
+//currency conversion
+builder.Services.AddHttpClient<ICurrencyService, CurrencyApiAdapterService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

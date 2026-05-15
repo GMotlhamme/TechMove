@@ -20,6 +20,9 @@ namespace TechMove.Services
             if (contract == null)
                 return false;
 
+            if (string.IsNullOrWhiteSpace(contract.Status))
+                return false;
+
             return contract.Status != "Expired"
                 && contract.Status != "OnHold";
         }

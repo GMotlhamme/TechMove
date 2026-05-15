@@ -25,29 +25,35 @@ namespace TechMove.Controllers
         // GET: Contracts
         public async Task<IActionResult> Index(
             string? status,
-            DateOnly? startDate,
-            DateOnly? endDate)
+            DateTime? startDate,
+            DateTime? endDate)
         {
             var contracts = _context.Contracts.AsQueryable();
 
             if (status != null)
             {
-                contracts = contracts.Where(c => c.Status == status);//using LINQ we filtered through contracts by status
+                contracts = contracts.Where(c => c.Status.Contains(status));//using LINQ we filtered through contracts by status
             }
 
             if (startDate.HasValue)
             {
-                contracts = contracts.Where(c => c.StartDate >= startDate);
+                contracts = contracts.Where(c =>
+                    c.StartDate >= DateOnly.FromDateTime(startDate.Value));
             }
 
             if (endDate.HasValue)
             {
-                contracts = contracts.Where(c => c.EndDate <= endDate);
+                contracts = contracts.Where(c =>
+        c.EndDate <= DateOnly.FromDateTime(endDate.Value));
             }
 
             return View(await contracts.ToListAsync());
         }
 
+        //public async Task<IActionResult> MyContracts(string userName)
+        //{
+        //    _context.Contracts.FindAsync(userName);
+        //}
         // GET: Contracts/Details/5
         public async Task<IActionResult> Details(int? id)
         {

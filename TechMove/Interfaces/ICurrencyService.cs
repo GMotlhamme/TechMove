@@ -2,6 +2,6 @@
 {
     public interface ICurrencyService
     {
-        Task<decimal> ConvertToZar();
+        Task<decimal> ConvertToZar(decimal amount);
     }
 }

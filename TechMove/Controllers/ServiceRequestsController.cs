@@ -12,11 +12,13 @@ public class ServiceRequestsController : Controller
 {
     private readonly TechMoveDbContext _context;
     private readonly IServiceRequestService serviceRequestService;
+    private readonly ICurrencyService currencyApiAdapterService;
 
-    public ServiceRequestsController(TechMoveDbContext context, IServiceRequestService serviceRequestService)
+    public ServiceRequestsController(TechMoveDbContext context, IServiceRequestService serviceRequestService, ICurrencyService currencyApiAdapterService)
     {
         _context = context;
         this.serviceRequestService = serviceRequestService;
+        this.currencyApiAdapterService = currencyApiAdapterService;
     }
 
     // GET: SERVICEREQUESTS
@@ -64,6 +66,19 @@ public class ServiceRequestsController : Controller
                 ModelState.AddModelError("", "Cannot create request for expired or on-hold contracts.");
                 return View(servicerequest);
             }
+
+
+            try
+            {
+                var convertedAmount = currencyApiAdapterService.ConvertToZar(servicerequest.Cost);
+                servicerequest.Cost = await convertedAmount;
+
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
+
             _context.Add(servicerequest);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
