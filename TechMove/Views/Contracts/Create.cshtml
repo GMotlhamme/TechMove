@@ -43,11 +43,6 @@
                 </select>
                 <span asp-validation-for="ServiceLevel" class="text-danger"></span>
             </div>
-            @* <div class="form-group">
-                <label asp-for="SignedAgreement" class="control-label"></label>
-                <input asp-for="SignedAgreement" class="form-control" />
-                <span asp-validation-for="SignedAgreement" class="text-danger"></span>
-            </div> *@
             <div class="form-group">
                 <label>Signed Supply Agreement pdf</label>
                 <input type="file" name="ConfirmedSignedAgreement" class="form-control" />
@@ -58,15 +53,14 @@
                 <select asp-for="ClientId" class ="form-control" asp-items="ViewBag.ClientId"></select>
             </div>
             <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
+                <input type="submit" value="Create" class="btn btn-dark" />
+                <a asp-action="Index" class="btn btn-dark">Back to List</a>
             </div>
         </form>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
+
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}

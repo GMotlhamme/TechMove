@@ -1,8 +1,8 @@
 ﻿@model TechMove.Models.Domain.Client
 
 
-<h2>Welcome, @Model.Name</h2>
-<p>current contract</p>
+<h1>Welcome back, @Model.Name</h1>
+<h3>Here's your current contract </h3>
 <table class="table">
     <thead>
         <tr>
@@ -29,7 +29,7 @@
         {
             <tr>
                 <td>
-                    @Html.DisplayFor(modelItem => item.StartDate)
+                    @Html.DisplayFor(modelItem => item.StartDate) 
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.EndDate)
@@ -41,38 +41,43 @@
                     @Html.DisplayFor(modelItem => item.ServiceLevel)
                 </td>
                 <td>
-                    <a href="@Html.DisplayFor(modelItem => item.SignedAgreement)" download="@Html.DisplayFor(modelItem => item.SignedAgreement)">download</a>
+                    <a class="btn btn-outline-dark" href="@Html.DisplayFor(modelItem => item.SignedAgreement)" download="@Html.DisplayFor(modelItem => item.SignedAgreement)">download</a>
 
                 </td>
                 <td>
-                    <a asp-controller="ServiceRequests"
+                    <a class="btn btn-dark"
+                       asp-controller="ServiceRequests"
                        asp-action="Create"
                        asp-route-contractId="@item.Id">
                         Create Service Request
                     </a> |
-                    <a asp-controller="ClientContracts"
+                    <a class="btn btn-dark"
+                       asp-controller="ClientContracts"
                        asp-action="UploadAgreement"
                        asp-route-id="@item.Id">
                         Upload Agreement
                     </a>
                 </td>
-            </tr>
-            <tr>
+                </tr>                
+            
+            
 
-            <td>
-                @if (item.ServiceRequests != null)
-                {
-                    <p>Your Service requests</p>
-                    <ul>
-                        @foreach (var request in item.ServiceRequests)
-                        {
-                            <li>
-                                @request.ServiceName - @request.Status
-                            </li>
-                        }
-                    </ul>
-                }
-            </td>
+            <tr class="serviceRequestContainer">
+
+                <td>
+                    @if (item.ServiceRequests != null)
+                    {
+                        <h2>Your Service requests</h2>
+                        <ul>
+                            @foreach (var request in item.ServiceRequests)
+                            {
+                                <li>
+                                    @request.ServiceName - @request.Status 
+                                </li>
+                            }
+                        </ul>
+                    }
+                </td>
             </tr>
         }
     </tbody>

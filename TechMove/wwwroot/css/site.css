@@ -29,3 +29,31 @@ body {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
   text-align: start;
 }
+
+/*admin portal*/
+.searchContainer {
+    display: flex;
+    gap: 8px;
+    margin-top: 60px;
+    place-content: center;
+    place-items: center;
+}
+
+/*Clients portal*/
+.clientPortalContainer {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-top: 30px;
+    padding-inline: 260px;
+    gap:8px;
+}
+
+.clientPortalForm {
+    display: flex;
+    gap: 8px;
+}
+
+.serviceRequestContainer{
+    margin-top:30px;
+}

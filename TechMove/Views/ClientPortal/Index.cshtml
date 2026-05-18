@@ -1,17 +1,22 @@
 ﻿@model TechMove.Models.Domain.Client
 
-<form asp-action="Dashboard" method="get">
+<section class="clientPortalContainer">
 
-    <select name="clientId"
-            asp-items="ViewBag.Clients"
-            class="form-control">
+    <h1>Lets get to business, pick your userName!</h1>
 
-        <option value="">-- Select Client --</option>
+    <form class="clientPortalForm" asp-action="Dashboard" method="get">
 
-    </select>
+        <select name="clientId"
+                asp-items="ViewBag.Clients"
+                class="form-control">
 
-    <button type="submit" class="btn btn-primary">
-        Continue
-    </button>
+            <option value="">-- Select Client --</option>
 
-</form>
+        </select>
+
+        <button type="submit" class="btn btn-dark">
+            Continue
+        </button>
+
+    </form>
+</section>
