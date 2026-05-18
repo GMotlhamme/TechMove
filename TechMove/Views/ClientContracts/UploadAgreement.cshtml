@@ -1,0 +1,11 @@
+﻿@model TechMove.Models.Domain.Contract
+
+<p>selcet and submit your signed contract</p>
+<form enctype="multipart/form-data" asp-action="UploadAgreement" asp-route-id="@Model.Id">
+    
+    <div class="form-group">
+        <label>Signed Supply Agreement pdf</label>
+        <input type="file" name="ConfirmedSignedAgreement" class="form-control" />
+    </div>
+    <button type="submit" class="btn">Submit</button>
+</form>

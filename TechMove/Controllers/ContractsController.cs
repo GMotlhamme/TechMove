@@ -153,7 +153,7 @@ namespace TechMove.Controllers
 
             if (ModelState.IsValid)
             {
-                try
+            try
                 {
                     _context.Update(contract);
                     await _context.SaveChangesAsync();

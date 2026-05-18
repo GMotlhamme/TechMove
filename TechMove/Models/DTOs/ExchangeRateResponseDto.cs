@@ -2,6 +2,8 @@
 {
     public class ExchangeRateResponseDto
     {
-        public RatesDto rates { get; set; }
+        public string result { get; set; }
+        public string base_code { get; set; }
+        public Dictionary<string, decimal> conversion_rates { get; set; }
     }
 }

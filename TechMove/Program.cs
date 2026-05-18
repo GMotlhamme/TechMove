@@ -21,6 +21,9 @@ builder.Services.AddScoped<IServiceRequestService, ServiceRequestService>();
 //currency conversion
 builder.Services.AddHttpClient<ICurrencyService, CurrencyApiAdapterService>();
 
+//observer status checker
+builder.Services.AddScoped<IContractObserver, ContractStatusObserverService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

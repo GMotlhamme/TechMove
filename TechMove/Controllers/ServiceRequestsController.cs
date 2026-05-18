@@ -1,24 +1,25 @@
 
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using System.Diagnostics.Contracts;
 using TechMove.Data;
 using TechMove.Interfaces;
 using TechMove.Models.Domain;
-using TechMove.Services;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 public class ServiceRequestsController : Controller
 {
     private readonly TechMoveDbContext _context;
     private readonly IServiceRequestService serviceRequestService;
     private readonly ICurrencyService currencyApiAdapterService;
+    private readonly IContractObserver contractObserver;
 
-    public ServiceRequestsController(TechMoveDbContext context, IServiceRequestService serviceRequestService, ICurrencyService currencyApiAdapterService)
+    public ServiceRequestsController(TechMoveDbContext context, IServiceRequestService serviceRequestService, ICurrencyService currencyApiAdapterService, IContractObserver contractObserver)
     {
         _context = context;
         this.serviceRequestService = serviceRequestService;
         this.currencyApiAdapterService = currencyApiAdapterService;
+        this.contractObserver = contractObserver;
     }
 
     // GET: SERVICEREQUESTS
@@ -46,8 +47,18 @@ public class ServiceRequestsController : Controller
     }
 
     // GET: SERVICEREQUESTS/Create
-    public IActionResult Create()
+    public async Task<IActionResult> CreateAsync()
     {
+        ViewBag.Contracts = new SelectList(
+        await _context.Contracts
+        .Select(c => new
+        {
+            c.Id,
+            Display = $"Contract #{c.Id} - {c.ServiceLevel}"
+        })
+        .ToListAsync(),
+    "Id",
+    "Display");
         return View();
     }
 
@@ -61,6 +72,11 @@ public class ServiceRequestsController : Controller
         if (ModelState.IsValid)
         {
             //service request validation
+            var contractStatus = await _context.Contracts.FirstOrDefaultAsync(x => x.Id == servicerequest.ContractId);
+            if (contractStatus != null)
+            {
+                await contractObserver.UpdateContractStatusAsync(contractStatus);
+            }
             if (!await serviceRequestService.CanCreateRequestAsync(servicerequest.ContractId))
             {
                 ModelState.AddModelError("", "Cannot create request for expired or on-hold contracts.");
@@ -70,18 +86,19 @@ public class ServiceRequestsController : Controller
 
             try
             {
+                //currency conversion
                 var convertedAmount = currencyApiAdapterService.ConvertToZar(servicerequest.Cost);
                 servicerequest.Cost = await convertedAmount;
-
             }
             catch (Exception ex)
             {
-                return BadRequest(ex);
+                ModelState.AddModelError("", ex.Message);
+                return View(servicerequest);
             }
 
             _context.Add(servicerequest);
             await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction("Dashboard", "ClientPortal",new { clientId = contractStatus.ClientId });
         }
         return View(servicerequest);
     }

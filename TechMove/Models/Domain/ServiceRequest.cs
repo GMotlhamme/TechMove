@@ -6,6 +6,7 @@ namespace TechMove.Models.Domain
     
     public class ServiceRequest
     {
+        [Key]
         public int Id { get; set; }
 
         [Required]
@@ -18,11 +19,11 @@ namespace TechMove.Models.Domain
         public decimal Cost { get; set; }
 
         [Required]
-        public string Status { get; set; }
+        public string? Status { get; set; }
 
         public int ContractId { get; set; }
 
         [ForeignKey("ContractId")]
-        public Contract Contract { get; set; }
+        public Contract? Contract { get; set; }
     }
 }

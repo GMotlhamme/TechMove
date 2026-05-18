@@ -1,0 +1,79 @@
+﻿@model TechMove.Models.Domain.Client
+
+
+<h2>Welcome, @Model.Name</h2>
+<p>current contract</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                StartDate
+            </th>
+            <th>
+                EndDate
+            </th>
+            <th>
+                Status
+            </th>
+            <th>
+                ServiceLevel
+            </th>
+            <th>
+                SignedAgreement
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.Contracts)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.StartDate)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.EndDate)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Status)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.ServiceLevel)
+                </td>
+                <td>
+                    <a href="@Html.DisplayFor(modelItem => item.SignedAgreement)" download="@Html.DisplayFor(modelItem => item.SignedAgreement)">download</a>
+
+                </td>
+                <td>
+                    <a asp-controller="ServiceRequests"
+                       asp-action="Create"
+                       asp-route-contractId="@item.Id">
+                        Create Service Request
+                    </a> |
+                    <a asp-controller="ClientContracts"
+                       asp-action="UploadAgreement"
+                       asp-route-id="@item.Id">
+                        Upload Agreement
+                    </a>
+                </td>
+            </tr>
+            <tr>
+
+            <td>
+                @if (item.ServiceRequests != null)
+                {
+                    <p>Your Service requests</p>
+                    <ul>
+                        @foreach (var request in item.ServiceRequests)
+                        {
+                            <li>
+                                @request.ServiceName - @request.Status
+                            </li>
+                        }
+                    </ul>
+                }
+            </td>
+            </tr>
+        }
+    </tbody>
+</table>

@@ -35,7 +35,12 @@
             </div>
             <div class="form-group">
                 <label asp-for="ServiceLevel" class="control-label"></label>
-                <input asp-for="ServiceLevel" class="form-control" />
+                <select asp-for="ServiceLevel" class="form-control">
+                    <option value="">Please select a value</option>
+                    <option value="Novice">Novice(Budget)</option>
+                    <option value="Standard">Standard</option>
+                    <option value="Premium">Premium</option>
+                </select>
                 <span asp-validation-for="ServiceLevel" class="text-danger"></span>
             </div>
             @* <div class="form-group">

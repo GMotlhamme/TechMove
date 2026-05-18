@@ -11,8 +11,11 @@
 </p>
 <form asp-action="Index" method="get" class="mb-3">
     <div class="searchContainer">
+        <label>Status</label>
         <input type="text" name="status" value="@Context.Request.Query["status"]" placeholder="Search status..." class="form-control" />
+        <label>Date</label>
         <input type="date" name="startDate" value="@Context.Request.Query["startDate"]" placeholder="Search start date..." class="form-control" />
+        <label>Range</label>
         <input type="date" name="endDate" value="@Context.Request.Query["endDate"]" placeholder="Search end date..." class="form-control" />
 
         <a asp-action="Index" class="btn clearSearchButton">Clear</a>
