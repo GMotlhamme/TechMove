@@ -1,40 +1,55 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Azure;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using TechMove.Data;
-using TechMove.Models.Domain;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using TechMove.Models.DTOs;
 
 namespace TechMove.Controllers
 {
     public class ClientsController : Controller
     {
-        private readonly TechMoveDbContext _context;
+        private readonly IHttpClientFactory _httpClientFactory;
 
-        public ClientsController(TechMoveDbContext context)
+        public ClientsController(
+            IHttpClientFactory httpClientFactory)
         {
-            _context = context;
+            _httpClientFactory = httpClientFactory;
         }
 
         // GET: Clients
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Clients.ToListAsync());
+            var client = _httpClientFactory.CreateClient("TechMoveBackend");
+
+            var response = await client.GetAsync($"api/Clients");
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return View(new List<AllClientsFrontendDto>());
+            }
+
+            var contracts = await response.Content.ReadFromJsonAsync<List<AllClientsFrontendDto>>();
+            return View(contracts);
         }
 
         // GET: Clients/Details/5
-        public async Task<IActionResult> Details(int? id)
+                public async Task<IActionResult> Details(int? id)
         {
-            if (id == null)
+            var apiClient = _httpClientFactory.CreateClient("TechMoveBackend");
+
+            var response = await apiClient.GetAsync($"api/Clients/{id}");
+
+            if (!response.IsSuccessStatusCode)
             {
-                return NotFound();
+                return View(new AllClientsFrontendDto());
             }
 
-            var client = await _context.Clients
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var client = await response.Content.ReadFromJsonAsync<AllClientsFrontendDto>();
+
             if (client == null)
             {
                 return NotFound();
@@ -43,78 +58,81 @@ namespace TechMove.Controllers
             return View(client);
         }
 
-        // GET: Clients/Create
-        public IActionResult Create()
-        {
-            return View();
-        }
-
-        // POST: Clients/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name,ContractDetails,Region")] Client client)
-        {
-            if (ModelState.IsValid)
-            {
-                _context.Add(client);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-            return View(client);
-        }
-
-        // GET: Clients/Edit/5
-        public async Task<IActionResult> Edit(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var client = await _context.Clients.FindAsync(id);
-            if (client == null)
-            {
-                return NotFound();
-            }
-            return View(client);
-        }
-
-        // POST: Clients/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,ContractDetails,Region")] Client client)
-        {
-            if (id != client.Id)
-            {
-                return NotFound();
-            }
-
-            if (ModelState.IsValid)
-            {
-                try
+        //        // GET: Clients/Create
+                public IActionResult Create()
                 {
-                    _context.Update(client);
-                    await _context.SaveChangesAsync();
+                    return View();
                 }
-                catch (DbUpdateConcurrencyException)
+
+               // POST: Clients/Create
+               // To protect from overposting attacks, enable the specific properties you want to bind to.
+               // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+            [HttpPost]
+            [ValidateAntiForgeryToken]
+            public async Task<IActionResult> Create([Bind("Id,Name,ContractDetails,Region")] AllClientsFrontendDto client)
+            {
+                if (ModelState.IsValid)
                 {
-                    if (!ClientExists(client.Id))
+                    var apiClient = _httpClientFactory.CreateClient("TechMoveBackend");
+                    var response = await apiClient.PostAsJsonAsync($"api/Clients", new {Name = client.Name, ContractDetails = client.ContractDetails, Region = client.Region});
+
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        ModelState.AddModelError("", "Failed to create client.");
+                        return View(client);
+
+                    }
+                    return RedirectToAction(nameof(Index));
+                }
+
+                return View(client);
+            }
+
+        //        // GET: Clients/Edit/5
+                public async Task<IActionResult> Edit(int? id)
+                {
+                    if (id == null)
                     {
                         return NotFound();
                     }
-                    else
+                    var apiClient = _httpClientFactory.CreateClient("TechMoveBackend");
+
+                    var client = await apiClient.GetFromJsonAsync<AllClientsFrontendDto>($"api/Clients/{id}");
+                    if (client == null)
                     {
-                        throw;
+                        return NotFound();
                     }
+                    return View(client);
                 }
-                return RedirectToAction(nameof(Index));
-            }
-            return View(client);
-        }
+
+                // POST: Clients/Edit/5
+                // To protect from overposting attacks, enable the specific properties you want to bind to.
+                // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+                [HttpPost]
+                [ValidateAntiForgeryToken]
+                public async Task<IActionResult> Edit(int id, [Bind("Id,Name,ContractDetails,Region")] AllClientsFrontendDto client)
+                {
+                    if (id != client.Id)
+                    {
+                        return NotFound();
+                    }
+
+                    if (!ModelState.IsValid)
+                    {
+                         return View(client);
+                    }
+                        var apiClient = _httpClientFactory.CreateClient("TechMoveBackend");
+
+                        var response = await apiClient.PatchAsJsonAsync($"api/Clients/{id}", new { Name = client.Name, ContractDetails = client.ContractDetails, Region = client.Region });
+                    
+                    if (response.IsSuccessStatusCode)
+                    {
+                        return RedirectToAction(nameof(Index));
+                    }
+
+                    ModelState.AddModelError("", "Failed to update client details.");
+                    return View(client);
+                }
 
         // GET: Clients/Delete/5
         public async Task<IActionResult> Delete(int? id)
@@ -124,8 +142,10 @@ namespace TechMove.Controllers
                 return NotFound();
             }
 
-            var client = await _context.Clients
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var apiClient = _httpClientFactory.CreateClient("TechMoveBackend");
+
+            var client = await apiClient.GetFromJsonAsync<AllClientsFrontendDto>($"api/Clients/{id}");
+        
             if (client == null)
             {
                 return NotFound();
@@ -139,19 +159,18 @@ namespace TechMove.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var client = await _context.Clients.FindAsync(id);
+            var apiClient = _httpClientFactory.CreateClient("TechMoveBackend");
+
+            var client = await apiClient.GetFromJsonAsync<AllClientsFrontendDto>($"api/Clients/{id}");
+
             if (client != null)
             {
-                _context.Clients.Remove(client);
+                await apiClient.DeleteAsync($"api/Clients/{id}");
             }
 
-            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool ClientExists(int id)
-        {
-            return _context.Clients.Any(e => e.Id == id);
-        }
+
     }
 }

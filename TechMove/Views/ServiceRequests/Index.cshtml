@@ -1,4 +1,4 @@
-@model IEnumerable<TechMove.Models.Domain.ServiceRequest>
+@model IEnumerable<TechMove.Models.DTOs.AllServiceRequestsFrontendDto>
 
 @{
     ViewData["Title"] = "Index";
@@ -27,9 +27,9 @@
             <th>
                 @Html.DisplayNameFor(model => model.ContractId)
             </th>
-            <th>
+            @* <th>
                 @Html.DisplayNameFor(model => model.Contract)
-            </th>
+            </th> *@
             <th></th>
         </tr>
     </thead>
@@ -51,9 +51,9 @@
             <td>
                 @Html.DisplayFor(model => item.ContractId)
             </td>
-            <td>
+            @* <td>
                 @Html.DisplayFor(model => item.Contract)
-            </td>
+            </td> *@
             <td>
                 <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
                 <a asp-action="Details" asp-route-id="@item.Id">Details</a> |

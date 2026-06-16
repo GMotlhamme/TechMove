@@ -54,7 +54,7 @@ namespace TechMoveBackend.Controllers
          
         // GET: Contracts/Details/5
         [HttpGet("{id}")]
-        public async Task<ActionResult> GetSingleContract(int? id)
+        public async Task<ActionResult<SingleContractDto>> GetSingleContract(int? id)
         {
             if (id == null)
             {
@@ -66,8 +66,18 @@ namespace TechMoveBackend.Controllers
             {
                 return NotFound();
             }
+            var dto = new SingleContractDto
+            {
+                Id = contract.Id,
+                StartDate = contract.StartDate,
+                EndDate = contract.EndDate,
+                Status = contract.Status,
+                ServiceLevel = contract.ServiceLevel,
+                SignedAgreement = contract.SignedAgreement,
+                ClientId = contract.ClientId
+            };
 
-            return Ok(contract);
+            return Ok(dto);
         }
 
       
@@ -76,7 +86,7 @@ namespace TechMoveBackend.Controllers
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
-        public async Task<ActionResult> CreateContract([FromForm] CreateContractDto dto)
+        public async Task<ActionResult> CreateContract([FromBody] CreateContractDto dto)
         {
             if (!ModelState.IsValid)
             { 

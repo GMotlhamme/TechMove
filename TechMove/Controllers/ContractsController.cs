@@ -1,25 +1,22 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.Build.Tasks;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using TechMove.Data;
-using TechMove.Models.Domain;
-using TechMove.Services;
-
+using TechMove.Models.DTOs;
 namespace TechMove.Controllers
 {
     public class ContractsController : Controller
     {
-        private readonly TechMoveDbContext _context;
-        private readonly FileUploadValidationService _fileUploadValidationService;
+        private readonly IHttpClientFactory _httpClientFactory;
 
-        public ContractsController(TechMoveDbContext context, FileUploadValidationService fileUploadValidationService)
+        public ContractsController(
+            IHttpClientFactory httpClientFactory)
         {
-            _context = context;
-            _fileUploadValidationService = fileUploadValidationService;
+            _httpClientFactory = httpClientFactory;
         }
 
         // GET: Contracts
@@ -28,33 +25,22 @@ namespace TechMove.Controllers
             DateTime? startDate,
             DateTime? endDate)
         {
-            var contracts = _context.Contracts.AsQueryable();
+            var client = _httpClientFactory.CreateClient("TechMoveBackend");
 
-            if (status != null)
+            var response = await client.GetAsync($"api/Contracts?status={status}&startDate={startDate:yyyy-MM-dd}&endDate={endDate:yyyy-MM-dd}");
+
+            if (!response.IsSuccessStatusCode)
             {
-                contracts = contracts.Where(c => c.Status.Contains(status));//using LINQ we filtered through contracts by status
+                return View(new List<ContractsFrontendDto>());
             }
 
-            if (startDate.HasValue)
-            {
-                contracts = contracts.Where(c =>
-                    c.StartDate >= DateOnly.FromDateTime(startDate.Value));
-            }
+            var contracts = await response.Content.ReadFromJsonAsync<List<ContractsFrontendDto>>();
 
-            if (endDate.HasValue)
-            {
-                contracts = contracts.Where(c =>
-        c.EndDate <= DateOnly.FromDateTime(endDate.Value));
-            }
-
-            return View(await contracts.ToListAsync());
+            return View(contracts);
         }
 
-        //public async Task<IActionResult> MyContracts(string userName)
-        //{
-        //    _context.Contracts.FindAsync(userName);
-        //}
-        // GET: Contracts/Details/5
+     
+        //GET: Contracts/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -62,9 +48,16 @@ namespace TechMove.Controllers
                 return NotFound();
             }
 
-            var contract = await _context.Contracts
-                .Include(c => c.Client)
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var client = _httpClientFactory.CreateClient("TechMoveBackend");
+            var response = await client.GetAsync($"api/Contracts/{id}");
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return View(new SingleContractFrontendDto());
+            }
+
+            var contract = await response.Content.ReadFromJsonAsync<SingleContractFrontendDto>();
+
             if (contract == null)
             {
                 return NotFound();
@@ -73,56 +66,80 @@ namespace TechMove.Controllers
             return View(contract);
         }
 
-        // GET: Contracts/Create
-        public IActionResult Create()
+        //helper method to get dropdown of clients
+        private async Task PopulateClientsDropDown(HttpClient client, int? selectedClientId = null)
         {
-            ViewData["ClientId"] = new SelectList(_context.Clients, "Id", "Name");
+            var clients =await client.GetFromJsonAsync<List<AllClientsFrontendDto>>("api/clients");
+
+            ViewData["ClientId"] = new SelectList(clients, "Id", "Name", selectedClientId);
+        }
+        // GET: Contracts/Create
+        public async Task<IActionResult> Create()
+        {
+            var client = _httpClientFactory.CreateClient("TechMoveBackend");
+
+            await PopulateClientsDropDown(client);
+
             return View();
         }
 
-        // POST: Contracts/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        //// POST: Contracts/Create
+        //// To protect from overposting attacks, enable the specific properties you want to bind to.
+        //// For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,StartDate,EndDate,Status,ServiceLevel,SignedAgreement,ClientId")] Contract contract, IFormFile ConfirmedSignedAgreement)
+        public async Task<IActionResult> Create([Bind("Id,StartDate,EndDate,Status,ServiceLevel,SignedAgreement,ClientId")] CreateContractFrontendDto contract, IFormFile ConfirmedSignedAgreement)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                if (ConfirmedSignedAgreement != null && ConfirmedSignedAgreement.Length > 0)
-                {
-                    try
-                    {
-                        //uploading the form
-                        _fileUploadValidationService.ValidatePdf(ConfirmedSignedAgreement.FileName);
-                    }
-                    catch (Exception ex)
-                    {
-                        ModelState.AddModelError("", ex.Message);
-                        ViewData["ClientId"] = new SelectList(_context.Clients, "ClientId", "Fullname", contract.Id);
-                        return View(contract);
-                    }
-
-                    var fileName = Guid.NewGuid().ToString() + ".pdf";
-
-                    var uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads", fileName);
-
-                    using (var stream = new FileStream(uploadPath, FileMode.Create))
-                    {
-                        await ConfirmedSignedAgreement.CopyToAsync(stream);
-                    }
-
-                    contract.SignedAgreement = "/uploads/" + fileName;
-                }
-                _context.Add(contract);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                var client = _httpClientFactory.CreateClient("TechMoveBackend");
+                await PopulateClientsDropDown(client, contract.ClientId);
+                return View(contract);
             }
-            ViewData["ClientId"] = new SelectList(_context.Clients, "Id", "Name", contract.ClientId);
-            return View(contract);
+
+            var apiClient = _httpClientFactory.CreateClient("TechMoveBackend");
+
+            var response = await apiClient.PostAsJsonAsync("api/contracts", new
+            {
+                StartDate = contract.StartDate,
+                EndDate = contract.EndDate,
+                Status = contract.Status,
+                ServiceLevel = contract.ServiceLevel,
+                ClientId = contract.ClientId
+            });
+
+            if (!response.IsSuccessStatusCode)
+            {
+                ModelState.AddModelError("", "Failed to create contract.");
+                await PopulateClientsDropDown(apiClient, contract.ClientId);
+                return View(contract);
+            }
+
+            var createdContract = await response.Content.ReadFromJsonAsync<CreateContractFrontendDto>();
+
+            if (ConfirmedSignedAgreement != null && ConfirmedSignedAgreement.Length > 0 && createdContract != null)
+            {
+                using var formData = new MultipartFormDataContent();
+
+                using var fileStream = ConfirmedSignedAgreement.OpenReadStream();
+
+                formData.Add(new StreamContent(fileStream), "confirmedSignedAgreement", ConfirmedSignedAgreement.FileName);
+
+                var uploadResponse = await apiClient.PutAsync($"api/clientcontracts/{createdContract.Id}/agreement",formData);
+
+                if (!uploadResponse.IsSuccessStatusCode)
+                {
+                    ModelState.AddModelError("", "Contract created, but agreement upload failed. ");
+
+                    await PopulateClientsDropDown(apiClient, contract.ClientId);
+                    return View(contract);
+                }
+            }
+
+            return RedirectToAction(nameof(Index));
         }
 
-        // GET: Contracts/Edit/5
+        //// GET: Contracts/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -130,49 +147,53 @@ namespace TechMove.Controllers
                 return NotFound();
             }
 
-            var contract = await _context.Contracts.FindAsync(id);
+            var client = _httpClientFactory.CreateClient("TechMoveBackend");
+
+            var contract = await client.GetFromJsonAsync<SingleContractFrontendDto>($"api/contracts/{id}");
+
             if (contract == null)
             {
                 return NotFound();
             }
-            ViewData["ClientId"] = new SelectList(_context.Clients, "Id", "Name", contract.ClientId);
-            return View(contract);
+
+            var model = new UpdateContractStatusFrontendDto
+            {
+                Id = contract.Id,
+                Status = contract.Status
+            };
+
+            return View(model);
         }
 
-        // POST: Contracts/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        //// POST: Contracts/Edit/5
+        //// To protect from overposting attacks, enable the specific properties you want to bind to.
+        //// For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,StartDate,EndDate,Status,ServiceLevel,SignedAgreement,ClientId")] Contract contract)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,StartDate,EndDate,Status,ServiceLevel,SignedAgreement,ClientId")] UpdateContractStatusFrontendDto model)
         {
-            if (id != contract.Id)
+            if (id != model.Id)
             {
                 return NotFound();
             }
 
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-            try
-                {
-                    _context.Update(contract);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!ContractExists(contract.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
+                return View(model);
+            }
+
+            var client = _httpClientFactory.CreateClient("TechMoveBackend");
+
+            var response = await client.PatchAsJsonAsync( $"api/contracts/{id}/status", new { status = model.Status });
+
+            if (response.IsSuccessStatusCode)
+            {
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["ClientId"] = new SelectList(_context.Clients, "Id", "Name", contract.ClientId);
-            return View(contract);
+
+            ModelState.AddModelError("", "Failed to update contract status.");
+
+            return View(model);
         }
 
         // GET: Contracts/Delete/5
@@ -183,9 +204,9 @@ namespace TechMove.Controllers
                 return NotFound();
             }
 
-            var contract = await _context.Contracts
-                .Include(c => c.Client)
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var client = _httpClientFactory.CreateClient("TechMoveBackend");
+
+            var contract = await client.GetFromJsonAsync<SingleContractFrontendDto>($"api/contracts/{id}");
             if (contract == null)
             {
                 return NotFound();
@@ -199,19 +220,18 @@ namespace TechMove.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var contract = await _context.Contracts.FindAsync(id);
+            var client = _httpClientFactory.CreateClient("TechMoveBackend");
+
+            var contract = await client.GetFromJsonAsync<SingleContractFrontendDto>($"api/Contracts/{id}");
+            
             if (contract != null)
             {
-                _context.Contracts.Remove(contract);
+                await client.DeleteAsync($"api/contracts/{id}");
             }
 
-            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool ContractExists(int id)
-        {
-            return _context.Contracts.Any(e => e.Id == id);
-        }
+        
     }
 }

@@ -1,28 +1,15 @@
 using Microsoft.EntityFrameworkCore;
-using TechMove.Data;
-using TechMove.Interfaces;
-using TechMove.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
-//database configuration
-builder.Services.AddDbContext<TechMoveDbContext>(options =>
-options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-//file upload
-builder.Services.AddScoped<FileUploadValidationService>();
-
-//service request validations
-builder.Services.AddScoped<IServiceRequestService, ServiceRequestService>();
-
-//currency conversion
-builder.Services.AddHttpClient<ICurrencyService, CurrencyApiAdapterService>();
-
-//observer status checker
-builder.Services.AddScoped<IContractObserver, ContractStatusObserverService>();
+builder.Services.AddHttpClient("TechMoveBackend", client =>
+{
+    client.BaseAddress = new Uri("http://localhost:5289/");
+});
 
 var app = builder.Build();
 

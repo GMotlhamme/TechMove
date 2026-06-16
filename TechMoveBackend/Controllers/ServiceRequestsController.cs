@@ -56,14 +56,6 @@ public class ServiceRequestsController : ControllerBase
     public async Task<ActionResult> CreateServiceRequest([FromBody] CreateServiceRequestDto serviceRequest)
     {
       
-            var newServiceRequest = new ServiceRequest
-            {
-                ServiceName = serviceRequest.ServiceName,
-                Description = serviceRequest.Description,
-                Cost = serviceRequest.Cost,
-                Status = serviceRequest.Status,
-                ContractId = serviceRequest.ContractId
-            };
             //service request validation
             var contractStatus = await _context.Contracts.FirstOrDefaultAsync(x => x.Id == serviceRequest.ContractId);
             
@@ -88,6 +80,14 @@ public class ServiceRequestsController : ControllerBase
             {
                 return BadRequest(ex.Message);
             }
+            var newServiceRequest = new ServiceRequest
+            {
+                ServiceName = serviceRequest.ServiceName,
+                Description = serviceRequest.Description,
+                Cost = serviceRequest.Cost,
+                Status = serviceRequest.Status,
+                ContractId = serviceRequest.ContractId
+            };
 
             _context.ServiceRequests.Add(newServiceRequest);
             await _context.SaveChangesAsync();
@@ -119,6 +119,7 @@ public class ServiceRequestsController : ControllerBase
             existingRequest.Description = dto.Description;
         }
         
+
         if (!string.IsNullOrEmpty(dto.Status))
         {
             existingRequest.Status = dto.Status;

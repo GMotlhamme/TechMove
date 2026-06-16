@@ -20,6 +20,7 @@ namespace TechMove.Controllers
             _fileUploadValidationService = fileUploadValidationService;
         }
         [HttpGet]
+        [Route("{id}")]
         public async Task<ActionResult<Contract>> UploadAgreement(int id)
         {
             var contract = await _context.Contracts.FindAsync(id);
@@ -33,7 +34,8 @@ namespace TechMove.Controllers
         }
 
         [HttpPut]
-        public async Task<ActionResult> UploadAgreement(int id, IFormFile ConfirmedSignedAgreement)
+        [Route("{id}/agreement")]
+        public async Task<ActionResult> UploadAgreement(int id,[FromForm] IFormFile ConfirmedSignedAgreement)
         {
             var contract = await _context.Contracts.FindAsync(id);
 
@@ -41,9 +43,12 @@ namespace TechMove.Controllers
             {
                 return NotFound();
             }
+            if (ConfirmedSignedAgreement == null || ConfirmedSignedAgreement.Length == 0)
+            {
+                return BadRequest("No file was uploaded.");
+            }
 
-            
-                    _fileUploadValidationService.ValidatePdf(ConfirmedSignedAgreement.FileName);
+            _fileUploadValidationService.ValidatePdf(ConfirmedSignedAgreement.FileName);
 
                     var fileName = Guid.NewGuid() + ".pdf";
 
@@ -57,13 +62,41 @@ namespace TechMove.Controllers
                         await ConfirmedSignedAgreement.CopyToAsync(stream);
                     }
 
-                    contract.SignedAgreement = "/uploads/" + fileName;
+                    contract.SignedAgreement = "/SavedDocuments/" + fileName;
 
                     await _context.SaveChangesAsync();
                 
             
 
             return Ok(contract);
+        }
+
+
+        [HttpGet("{id}/agreement/download")]
+        public async Task<IActionResult> DownloadAgreement(int id)
+        {
+            var contract = await _context.Contracts.FindAsync(id);
+
+            if (contract == null || string.IsNullOrEmpty(contract.SignedAgreement))
+            {
+                return NotFound();
+            }
+
+            var fileName = Path.GetFileName(contract.SignedAgreement);
+
+            var filePath = Path.Combine(
+                Directory.GetCurrentDirectory(),
+                "SavedDocuments",
+                fileName);
+
+            if (!System.IO.File.Exists(filePath))
+            {
+                return NotFound();
+            }
+
+            var fileBytes = await System.IO.File.ReadAllBytesAsync(filePath);
+
+            return File(fileBytes, "application/pdf", fileName);
         }
     }
 }
