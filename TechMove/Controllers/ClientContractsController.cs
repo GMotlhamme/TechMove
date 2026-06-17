@@ -35,7 +35,7 @@ namespace TechMove.Controllers
 
             return View(contract);
         }
-
+       
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UploadAgreement(int id, IFormFile ConfirmedSignedAgreement)
@@ -69,8 +69,7 @@ namespace TechMove.Controllers
                 if (!uploadResponse.IsSuccessStatusCode)
                 {
                     var error = await uploadResponse.Content.ReadAsStringAsync();
-
-                    ModelState.AddModelError( "",$"Agreement upload failed: {error}");
+                    ModelState.AddModelError("", $"Upload failed: {error}");
                     return View(contract);
                 }
             }

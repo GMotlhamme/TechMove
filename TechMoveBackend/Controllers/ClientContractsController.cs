@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using TechMove.Data;
 using TechMove.Models.Domain;
 using TechMove.Services;
+using TechMoveBackend.Models.DTOs;
 
 namespace TechMove.Controllers
 {
@@ -35,7 +36,7 @@ namespace TechMove.Controllers
 
         [HttpPut]
         [Route("{id}/agreement")]
-        public async Task<ActionResult> UploadAgreement(int id,[FromForm] IFormFile ConfirmedSignedAgreement)
+        public async Task<ActionResult> UploadAgreement([FromRoute] int id, UploadAgreementDto dto )
         {
             var contract = await _context.Contracts.FindAsync(id);
 
@@ -43,30 +44,30 @@ namespace TechMove.Controllers
             {
                 return NotFound();
             }
-            if (ConfirmedSignedAgreement == null || ConfirmedSignedAgreement.Length == 0)
+
+            if (dto.ConfirmedSignedAgreement == null || dto.ConfirmedSignedAgreement.Length == 0)
             {
                 return BadRequest("No file was uploaded.");
             }
 
-            _fileUploadValidationService.ValidatePdf(ConfirmedSignedAgreement.FileName);
+            _fileUploadValidationService.ValidatePdf(dto.ConfirmedSignedAgreement.FileName);
 
-                    var fileName = Guid.NewGuid() + ".pdf";
+            var fileName = Guid.NewGuid() + ".pdf";
 
-                    var uploadPath = Path.Combine(
-                        Directory.GetCurrentDirectory(),
-                        "SavedDocuments",
-                        fileName);
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "SavedDocuments");
 
-                    using (var stream = new FileStream(uploadPath, FileMode.Create))
-                    {
-                        await ConfirmedSignedAgreement.CopyToAsync(stream);
-                    }
+            Directory.CreateDirectory(folderPath);
 
-                    contract.SignedAgreement = "/SavedDocuments/" + fileName;
+            var uploadPath = Path.Combine(folderPath, fileName);
 
-                    await _context.SaveChangesAsync();
-                
-            
+            using (var stream = new FileStream(uploadPath, FileMode.Create))
+            {
+                await dto.ConfirmedSignedAgreement.CopyToAsync(stream);
+            }
+
+            contract.SignedAgreement = "/SavedDocuments/" + fileName;
+
+            await _context.SaveChangesAsync();
 
             return Ok(contract);
         }
@@ -84,10 +85,7 @@ namespace TechMove.Controllers
 
             var fileName = Path.GetFileName(contract.SignedAgreement);
 
-            var filePath = Path.Combine(
-                Directory.GetCurrentDirectory(),
-                "SavedDocuments",
-                fileName);
+            var filePath = Path.Combine( Directory.GetCurrentDirectory(), "SavedDocuments", fileName);
 
             if (!System.IO.File.Exists(filePath))
             {
