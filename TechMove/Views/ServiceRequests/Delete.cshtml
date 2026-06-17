@@ -1,5 +1,4 @@
-@model TechMove.Models.Domain.ServiceRequest
-
+@model TechMove.Models.DTOs.AllServiceRequestsFrontendDto
 @{
     ViewData["Title"] = "Delete";
 }
@@ -51,12 +50,12 @@
         </dd>
     </dl>
     <dl class="row">
-        <dt class = "col-sm-2">
+        @* <dt class = "col-sm-2">
             @Html.DisplayNameFor(model => model.Contract)
         </dt>
         <dd class = "col-sm-10">
             @Html.DisplayFor(model => model.Contract)
-        </dd>
+        </dd> *@
     </dl>
     <form asp-action="Delete">
         <input type="hidden" asp-for="Id" />

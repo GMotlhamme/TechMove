@@ -3,17 +3,20 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TechMove.Data;
 
 #nullable disable
 
-namespace TechMove.Migrations
+namespace TechMoveBackend.Migrations
 {
     [DbContext(typeof(TechMoveDbContext))]
-    partial class TechMoveDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260528074643_InitialWebAPIMigration")]
+    partial class InitialWebAPIMigration
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

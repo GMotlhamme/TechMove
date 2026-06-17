@@ -1,35 +1,43 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using TechMove.Data;
+using TechMove.Models.DTOs;
 
 namespace TechMove.Controllers
 {
     public class ClientPortalController : Controller
     {
-        private readonly TechMoveDbContext _context;
-        public ClientPortalController(TechMoveDbContext context)
+        private readonly IHttpClientFactory _httpClientFactory;
+
+        public ClientPortalController(IHttpClientFactory httpClientFactory)
         {
-            _context = context;
+            _httpClientFactory = httpClientFactory;
         }
+
         public async Task<IActionResult> Index()
         {
-            ViewBag.Clients = new SelectList(
-                await _context.Clients.ToListAsync(),
-                "Id",
-                "Name");
+            var client = _httpClientFactory.CreateClient("TechMoveBackend");
+
+            var clients = await client.GetFromJsonAsync<List<AllClientsFrontendDto>>("api/clients");
+
+            ViewBag.Clients = new SelectList(clients, "Id", "Name");
 
             return View();
         }
 
         public async Task<IActionResult> Dashboard(int clientId)
         {
-            var client = await _context.Clients
-                .Include(c => c.Contracts)
-                .ThenInclude(c => c.ServiceRequests)
-                .FirstOrDefaultAsync(c => c.Id == clientId);
+            var client = _httpClientFactory.CreateClient("TechMoveBackend");
 
-            return View(client);
+            var dashboard = await client.GetFromJsonAsync<ClientDashboardFrontendDto>(
+                $"api/clientportal/{clientId}/dashboard");
+
+            if (dashboard == null)
+            {
+                return NotFound();
+            }
+
+            return View(dashboard);
         }
     }
-}
+    }

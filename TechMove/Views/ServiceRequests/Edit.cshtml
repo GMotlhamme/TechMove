@@ -1,4 +1,4 @@
-@model TechMove.Models.Domain.ServiceRequest
+@model TechMove.Models.DTOs.AllServiceRequestsFrontendDto
 
 @{
     ViewData["Title"] = "Edit";
@@ -38,11 +38,11 @@
                 <input asp-for="ContractId" class="form-control" />
                 <span asp-validation-for="ContractId" class="text-danger"></span>
             </div>
-            <div class="form-group">
+            @* <div class="form-group">
                 <label asp-for="Contract" class="control-label"></label>
                 <input asp-for="Contract" class="form-control" />
                 <span asp-validation-for="Contract" class="text-danger"></span>
-            </div>
+            </div> *@
             <div class="form-group">
                 <input type="submit" value="Save" class="btn btn-primary" />
             </div>

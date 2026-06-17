@@ -1,4 +1,4 @@
-﻿@model IEnumerable<TechMove.Models.Domain.Contract>
+﻿@model IEnumerable<TechMove.Models.DTOs.ContractsFrontendDto>
 
 @{
     ViewData["Title"] = "Index";
@@ -51,9 +51,9 @@
             <th>
                 @Html.DisplayNameFor(model => model.SignedAgreement)
             </th>
-            <th>
+            @* <th>
                 @Html.DisplayNameFor(model => model.Client)
-            </th>
+            </th> *@
             <th></th>
         </tr>
     </thead>
@@ -73,12 +73,24 @@
                 @Html.DisplayFor(modelItem => item.ServiceLevel)
             </td>
             <td>
-                    <a class="btn btn-outline-dark" href="@Html.DisplayFor(modelItem => item.SignedAgreement)" download="@Html.DisplayFor(modelItem => item.SignedAgreement)">download</a>
+                    @if (item.SignedAgreement != null)
+                    {
+                        <a class="btn btn-outline-dark"
+                           asp-controller="ClientContracts"
+                           asp-action="DownloadAgreement"
+                           asp-route-id="@item.Id">
+                            Download
+                        </a>
+
+                        
+                    }else{
+                    <a class="btn btn-outline-dark" asp-action="Edit" asp-route-id="@item.Id">Upload</a>
+                    }
                 
             </td>
-            <td>
+            @* <td>
                 @Html.DisplayFor(modelItem => item.Client)
-            </td>
+            </td> *@
             <td>
                 <a class="btn btn-dark" asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
                 <a class="btn btn-dark" asp-action="Details" asp-route-id="@item.Id">Details</a> |

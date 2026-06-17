@@ -1,4 +1,4 @@
-﻿@model TechMove.Models.Domain.Client
+﻿@model TechMove.Models.DTOs.ClientDashboardFrontendDto
 
 
 <h1>Welcome back, @Model.Name</h1>
@@ -41,7 +41,12 @@
                     @Html.DisplayFor(modelItem => item.ServiceLevel)
                 </td>
                 <td>
-                    <a class="btn btn-outline-dark" href="@Html.DisplayFor(modelItem => item.SignedAgreement)" download="@Html.DisplayFor(modelItem => item.SignedAgreement)">download</a>
+                    <a class="btn btn-outline-dark"
+                       asp-controller="ClientContracts"
+                       asp-action="DownloadAgreement"
+                       asp-route-id="@item.Id">
+                        Download
+                    </a>
 
                 </td>
                 <td>
