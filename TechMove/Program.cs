@@ -6,9 +6,11 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 
 
+var backendApiBaseUrl = builder.Configuration["BackendApi:BaseUrl"] ?? "http://localhost:5289/";
+
 builder.Services.AddHttpClient("TechMoveBackend", client =>
 {
-    client.BaseAddress = new Uri("http://localhost:5289/");
+    client.BaseAddress = new Uri(backendApiBaseUrl);
 });
 
 var app = builder.Build();
